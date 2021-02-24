@@ -48,12 +48,12 @@ void terminal_init()
 
 void terminal_put_char(char ch)
 {
-    size_t index = 0;
     if (ch == '\n') {
         terminal_go_next_line();
     } else {
         const size_t index = terminal_get_current_vga_buffer_index();
         terminal_set_vga_buffer_value(index, BLACK, WHITE, ch);
+        terminal_go_next_column();
     }
 }
 
