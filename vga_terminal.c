@@ -3,8 +3,8 @@
 #define VGA_BUFFER_ADDRESS 0xB8000
 
 static void terminal_clear();
-static void terminal_go_next_column();
-static void terminal_go_next_line();
+static void terminal_go_to_next_column();
+static void terminal_go_to_next_line();
 static void terminal_go_to_top();
 static void terminal_set_vga_buffer_value(size_t, uint8_t, uint8_t, uint8_t);
 static size_t terminal_calculate_vga_buffer_index(int, int);
@@ -49,11 +49,11 @@ void terminal_init()
 void terminal_put_char(char ch)
 {
     if (ch == '\n') {
-        terminal_go_next_line();
+        terminal_go_to_next_line();
     } else {
         const size_t index = terminal_get_current_vga_buffer_index();
         terminal_set_vga_buffer_value(index, BLACK, WHITE, ch);
-        terminal_go_next_column();
+        terminal_go_to_next_column();
     }
 }
 
@@ -89,7 +89,7 @@ static void terminal_go_to_top()
     terminal_row = 0;
 }
 
-static void terminal_go_next_line()
+static void terminal_go_to_next_line()
 {
     terminal_column = 0;
     ++terminal_row;
@@ -98,11 +98,11 @@ static void terminal_go_next_line()
     }
 }
 
-static void terminal_go_next_column()
+static void terminal_go_to_next_column()
 {
     ++terminal_column;
     if (terminal_column >= VGA_COLS) {
-        terminal_go_next_line();
+        terminal_go_to_next_line();
     }
 }
 
