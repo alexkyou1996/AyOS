@@ -2,12 +2,11 @@ CC = i686-elf-gcc
 CFLAGS = -std=gnu99 -ffreestanding -g -O0
 C_FILES = \
 	vga_terminal.c \
-	kernel.c
+	kernel.c \
+	klib.c
 
 S_FILES = \
 	start.s
-
-
 
 O_FILES = $(S_FILES:.s=.o)
 O_FILES +=  $(C_FILES:.c=.o)
