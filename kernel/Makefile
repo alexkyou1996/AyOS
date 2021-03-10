@@ -3,10 +3,12 @@ CFLAGS = -std=gnu99 -ffreestanding -g -O0
 C_FILES = \
 	vga_terminal.c \
 	kernel.c \
-	klib.c
+	klib.c \
+	gdt.c
 
 S_FILES = \
-	start.s
+	start.s \
+	gdt_setup.s
 
 O_FILES = $(S_FILES:.s=.o)
 O_FILES +=  $(C_FILES:.c=.o)
