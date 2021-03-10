@@ -1,3 +1,9 @@
+#include <stddef.h>
+#include <stdint.h>
+
+#ifndef __GDT_H__
+#define __GDT_H__
+
 #define SEG_DATA_RD        0x00 // Read-Only
 #define SEG_DATA_RDA       0x01 // Read-Only, accessed
 #define SEG_DATA_RDWR      0x02 // Read/Write
@@ -63,9 +69,11 @@ typedef enum _segment_type_enum {
 } segment_type_t;
 
 typedef struct __attribute__((packed)) _global_descriptor_table_struct {
-    uint16_t segment_descriptor_count;
+    uint16_t size;
     segment_descriptor_t descriptors[SEGMENT_COUNT];
 } global_descriptor_table_t;
 
 
 void init_global_descriptor_table();
+
+#endif

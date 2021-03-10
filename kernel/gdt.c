@@ -1,9 +1,16 @@
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "klib.h"
 #include "gdt.h"
 
-static void gdt_set_null_segment_descriptor();
-static void gdt_set_code_segment_desciprtor();
-static void gdt_set_data_segment_desciprtor();
+extern void load_gdt(void *, uint16_t size);
+extern void reload_segment_registers();
+
+static void gdt_init_null_segment_descriptor();
+static void gdt_init_code_segment_descriptor();
+static void gdt_init_data_segment_descriptor();
 
 static void gdt_set_base(int gdt_index, uint32_t base);
 static void gdt_set_limit(int gdt_index, uint32_t limit);
@@ -19,21 +26,21 @@ global_descriptor_table_t gdt;
 
 void init_global_descriptor_table()
 {
-    gdt.segment_descriptor_count = SEGMENT_COUNT;
+    gdt.size = SEGMENT_COUNT * sizeof(segment_descriptor_t);
 
-    gdt_set_null_segment_descriptor();
-    gdt_set_code_segment_desciprtor();
-    gdt_set_data_segment_desciprtor();
+    gdt_init_null_segment_descriptor();
+    gdt_init_code_segment_descriptor();
+    gdt_init_data_segment_descriptor();
 
-    load_gdt(gdt.descriptors[SEGMENT_NULL]);
-    reload_segment_register();
+    load_gdt(gdt.descriptors, gdt.size);
+    reload_segment_registers();
 }
 
 ///////////////////////
 // PRIVATE FUNCTIONS //
 ///////////////////////
 
-static void gdt_set_null_segment_descriptor()
+static void gdt_init_null_segment_descriptor()
 {
     gdt_set_base(SEGMENT_NULL, 0);
     gdt_set_limit(SEGMENT_NULL, 0);
@@ -45,7 +52,7 @@ static void gdt_set_null_segment_descriptor()
     gdt_set_default_operation_size(SEGMENT_NULL, 0);
     gdt_set_granulariy(SEGMENT_NULL, 0);
 }
-static void gdt_set_code_segment_desciprtor()
+static void gdt_init_code_segment_descriptor()
 {
     gdt_set_base(SEGMENT_CODE, 0);
     gdt_set_limit(SEGMENT_CODE, 0x000FFFFF);
@@ -57,7 +64,7 @@ static void gdt_set_code_segment_desciprtor()
     gdt_set_default_operation_size(SEGMENT_CODE, DEFAULT_32_BIT_SEG);
     gdt_set_granulariy(SEGMENT_CODE, GRANULARITY_4KB);
 }
-static void gdt_set_data_segment_desciprtor()
+static void gdt_init_data_segment_descriptor()
 {
     gdt_set_base(SEGMENT_DATA, 0);
     gdt_set_limit(SEGMENT_DATA, 0x000FFFFF);
@@ -95,7 +102,7 @@ static void gdt_set_descriptor_type(int gdt_index, uint8_t descriptor_type)
 
 static void gdt_set_descriptor_previlge_level(int gdt_index, uint8_t previlege_level)
 {
-    gdt.descriptors[gdt_index].descriptor_privilege_level = (descriptor_type & (1 << 0 | 1 << 1));
+    gdt.descriptors[gdt_index].descriptor_privilege_level = (previlege_level  & (1 << 0 | 1 << 1));
 }
 
 static void gdt_set_segment_present(int gdt_index, bool is_present)
