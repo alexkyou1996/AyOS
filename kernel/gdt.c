@@ -2,36 +2,41 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "segment.h"
 #include "klib.h"
 #include "gdt.h"
 
 extern void load_gdt(void *, uint16_t size);
 extern void reload_segment_registers();
 
+static void gdt_set_segment_size();
 static void gdt_init_null_segment_descriptor();
 static void gdt_init_code_segment_descriptor();
 static void gdt_init_data_segment_descriptor();
 
-static void gdt_set_base(int gdt_index, uint32_t base);
-static void gdt_set_limit(int gdt_index, uint32_t limit);
-static void gdt_set_segment_type(int gdt_index, uint8_t segment_type);
-static void gdt_set_descriptor_type(int gdt_index, uint8_t descriptor_type);
-static void gdt_set_descriptor_previlge_level(int gdt_index, uint8_t previlege_level);
-static void gdt_set_segment_present(int gdt_index, bool is_present);
-static void gdt_set_segment_is_64_bit(int gdt_index, bool is_64_bit);
-static void gdt_set_default_operation_size(int gdt_index, uint8_t operation_size);
-static void gdt_set_granulariy(int gdt_index, uint8_t granularity);
+typedef enum _segment_type_enum {
+    SEGMENT_NULL = 0,
+    SEGMENT_CODE,
+    SEGMENT_DATA,
+    SEGMENT_COUNT
+} segment_type_t;
+
+typedef struct __attribute__((packed)) _global_descriptor_table_struct {
+    uint16_t size;
+    segment_descriptor_t descriptors[SEGMENT_COUNT];
+} global_descriptor_table_t;
 
 global_descriptor_table_t gdt;
 
+//////////////////////
+// PUBLIC FUNCTIONS //
+//////////////////////
 void init_global_descriptor_table()
 {
-    gdt.size = SEGMENT_COUNT * sizeof(segment_descriptor_t);
-
+    gdt_set_segment_size();
     gdt_init_null_segment_descriptor();
     gdt_init_code_segment_descriptor();
     gdt_init_data_segment_descriptor();
-
     load_gdt(gdt.descriptors, gdt.size);
     reload_segment_registers();
 }
@@ -39,88 +44,43 @@ void init_global_descriptor_table()
 ///////////////////////
 // PRIVATE FUNCTIONS //
 ///////////////////////
+static void gdt_set_segment_size()
+{
+    gdt.size = SEGMENT_COUNT * sizeof(segment_descriptor_t);
+}
 
 static void gdt_init_null_segment_descriptor()
 {
-    gdt_set_base(SEGMENT_NULL, 0);
-    gdt_set_limit(SEGMENT_NULL, 0);
-    gdt_set_segment_type(SEGMENT_NULL, 0);
-    gdt_set_descriptor_type(SEGMENT_NULL, 0);
-    gdt_set_descriptor_previlge_level(SEGMENT_NULL, 0);
-    gdt_set_segment_present(SEGMENT_NULL, false);
-    gdt_set_segment_is_64_bit(SEGMENT_NULL, false);
-    gdt_set_default_operation_size(SEGMENT_NULL, 0);
-    gdt_set_granulariy(SEGMENT_NULL, 0);
+    segment_clear(&gdt.descriptors[SEGMENT_NULL]);
 }
 static void gdt_init_code_segment_descriptor()
 {
-    gdt_set_base(SEGMENT_CODE, 0);
-    gdt_set_limit(SEGMENT_CODE, 0x000FFFFF);
-    gdt_set_segment_type(SEGMENT_CODE, SEG_CODE_EXRD);
-    gdt_set_descriptor_type(SEGMENT_CODE, DESC_TYPE_CODE);
-    gdt_set_descriptor_previlge_level(SEGMENT_CODE, PREVILEGE_ZERO);
-    gdt_set_segment_present(SEGMENT_CODE, true);
-    gdt_set_segment_is_64_bit(SEGMENT_CODE, false);
-    gdt_set_default_operation_size(SEGMENT_CODE, DEFAULT_32_BIT_SEG);
-    gdt_set_granulariy(SEGMENT_CODE, GRANULARITY_4KB);
+    segment_descriptor_t *code_descriptor = &gdt.descriptors[SEGMENT_CODE];
+
+    segment_set_base(code_descriptor, 0);
+    segment_set_limit(code_descriptor, 0x000FFFFF);
+    segment_set_segment_type(code_descriptor, SEG_CODE_EXRD);
+    segment_set_descriptor_type(code_descriptor, DESC_TYPE_CODE);
+    segment_set_descriptor_previlge_level(code_descriptor, PREVILEGE_LEVEL_ZERO);
+    segment_set_segment_present(code_descriptor, true);
+    segment_set_segment_is_64_bit(code_descriptor, false);
+    segment_set_default_operation_size(code_descriptor, DEFAULT_32_BIT_SEG);
+    segment_set_granulariy(code_descriptor, GRANULARITY_4KB);
 }
 static void gdt_init_data_segment_descriptor()
 {
-    gdt_set_base(SEGMENT_DATA, 0);
-    gdt_set_limit(SEGMENT_DATA, 0x000FFFFF);
-    gdt_set_segment_type(SEGMENT_DATA, SEG_DATA_RDWR);
-    gdt_set_descriptor_type(SEGMENT_DATA, DESC_TYPE_DATA);
-    gdt_set_descriptor_previlge_level(SEGMENT_DATA, PREVILEGE_ZERO);
-    gdt_set_segment_present(SEGMENT_DATA, true);
-    gdt_set_segment_is_64_bit(SEGMENT_DATA, false);
-    gdt_set_default_operation_size(SEGMENT_DATA, DEFAULT_32_BIT_SEG);
-    gdt_set_granulariy(SEGMENT_DATA, GRANULARITY_4KB);
+    segment_descriptor_t *data_descriptor = &gdt.descriptors[SEGMENT_DATA];
+
+    segment_set_base(data_descriptor, 0);
+    segment_set_limit(data_descriptor, 0x000FFFFF);
+    segment_set_segment_type(data_descriptor, SEG_DATA_RDWR);
+    segment_set_descriptor_type(data_descriptor, DESC_TYPE_DATA);
+    segment_set_descriptor_previlge_level(data_descriptor, PREVILEGE_LEVEL_ZERO);
+    segment_set_segment_present(data_descriptor, true);
+    segment_set_segment_is_64_bit(data_descriptor, false);
+    segment_set_default_operation_size(data_descriptor, DEFAULT_32_BIT_SEG);
+    segment_set_granulariy(data_descriptor, GRANULARITY_4KB);
 }
 
-static void gdt_set_base(int gdt_index, uint32_t base)
-{
-    gdt.descriptors[gdt_index].base_low = (base & 0xFFFF);
-    gdt.descriptors[gdt_index].base_middle = ((base >> 16) & 0xFF);
-    gdt.descriptors[gdt_index].base_high = ((base >> 24) & 0xFF);
-}
 
-static void gdt_set_limit(int gdt_index, uint32_t limit)
-{
-    gdt.descriptors[gdt_index].limit_low = (limit & 0xFFFF);
-    gdt.descriptors[gdt_index].limit_high = ((limit >> 16) & 0x0F);
-}
 
-static void gdt_set_segment_type(int gdt_index, uint8_t segment_type)
-{
-    gdt.descriptors[gdt_index].segment_type = (segment_type & 0x0F);
-}
-
-static void gdt_set_descriptor_type(int gdt_index, uint8_t descriptor_type)
-{
-    gdt.descriptors[gdt_index].descriptor_type = (descriptor_type & 0x01);
-}
-
-static void gdt_set_descriptor_previlge_level(int gdt_index, uint8_t previlege_level)
-{
-    gdt.descriptors[gdt_index].descriptor_privilege_level = (previlege_level  & (1 << 0 | 1 << 1));
-}
-
-static void gdt_set_segment_present(int gdt_index, bool is_present)
-{
-    gdt.descriptors[gdt_index].segment_present = (is_present) ? 1 : 0;
-}
-
-static void gdt_set_segment_is_64_bit(int gdt_index, bool is_64_bit)
-{
-    gdt.descriptors[gdt_index].is_64_bit = (is_64_bit) ? 1 : 0;
-}
-
-static void gdt_set_default_operation_size(int gdt_index, uint8_t operation_size)
-{
-    gdt.descriptors[gdt_index].default_operation_size = (operation_size & 0x01);
-}
-
-static void gdt_set_granulariy(int gdt_index, uint8_t granularity)
-{
-    gdt.descriptors[gdt_index].granularity = (granularity & 0x01);
-}

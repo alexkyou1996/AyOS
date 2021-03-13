@@ -4,7 +4,8 @@ C_FILES = \
 	vga_terminal.c \
 	kernel.c \
 	klib.c \
-	gdt.c
+	gdt.c \
+	segment.c 
 
 S_FILES = \
 	start.s \
