@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "vga_terminal.h"
+#include "gdt.h"
 
 #if defined(__linux__)
     #error "This code must be compiled with a cross-compiler"
@@ -12,11 +13,8 @@
 void kernel_main()
 {
     terminal_init();
+    init_global_descriptor_table();
     terminal_print("Hello, World\n");
-    terminal_print("\n\n\n");
-    terminal_print("Bye, World\n");
-    terminal_print("Bye, World\n");
-    terminal_print("Bye, World\n");
-    terminal_print("Bye, World\n");
-    terminal_print("Bye, World\n");
 }
+
+

@@ -65,7 +65,7 @@ static void gdt_init_code_segment_descriptor()
     segment_set_segment_present(code_descriptor, true);
     segment_set_segment_is_64_bit(code_descriptor, false);
     segment_set_default_operation_size(code_descriptor, DEFAULT_32_BIT_SEG);
-    segment_set_granulariy(code_descriptor, GRANULARITY_4KB);
+    segment_set_granularity(code_descriptor, GRANULARITY_4KB);
 }
 static void gdt_init_data_segment_descriptor()
 {
@@ -79,7 +79,7 @@ static void gdt_init_data_segment_descriptor()
     segment_set_segment_present(data_descriptor, true);
     segment_set_segment_is_64_bit(data_descriptor, false);
     segment_set_default_operation_size(data_descriptor, DEFAULT_32_BIT_SEG);
-    segment_set_granulariy(data_descriptor, GRANULARITY_4KB);
+    segment_set_granularity(data_descriptor, GRANULARITY_4KB);
 }
 
 

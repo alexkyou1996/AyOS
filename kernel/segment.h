@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define SEG_DATA_RD        0x00 // Read-Only
 #define SEG_DATA_RDA       0x01 // Read-Only, accessed
@@ -36,8 +37,10 @@
 
 //! Structure that describes the segment descriptors in GDT
 //!
-//! This structure has to be defined in the header file for GDT to 
-//! instantiate it directly and the type size must be known
+//! The size of this structure must be known by the GDT in order
+//! for GDT to instantiate the object statically
+//!
+//! Use the supplied functions instead of manipulating the object directly for safety
 typedef struct __attribute__((packed)) _segment_descriptor_struct {
 
     uint16_t limit_low;
@@ -65,15 +68,15 @@ typedef struct __attribute__((packed)) _segment_descriptor_struct {
 
 } segment_descriptor_t;
 
-void segment_clear(segment_descriptor_t *);
-void segment_set_base(segment_descriptor_t *, uint32_t);
-void segment_set_limit(segment_descriptor_t *, uint32_t);
-void segment_set_segment_type(segment_descriptor_t *, uint8_t);
-void segment_set_descriptor_type(segment_descriptor_t *, uint8_t);
-void segment_set_descriptor_previlge_level(segment_descriptor_t *, uint8_t);
-void segment_set_segment_present(segment_descriptor_t *, bool);
-void segment_set_segment_is_64_bit(segment_descriptor_t *, bool);
-void segment_set_default_operation_size(segment_descriptor_t *, uint8_t);
-void segment_set_granulariy(segment_descriptor_t *, uint8_t);
+bool segment_clear(segment_descriptor_t *);
+bool segment_set_base(segment_descriptor_t *, uint32_t);
+bool segment_set_limit(segment_descriptor_t *, uint32_t);
+bool segment_set_segment_type(segment_descriptor_t *, uint8_t);
+bool segment_set_descriptor_type(segment_descriptor_t *, uint8_t);
+bool segment_set_descriptor_previlge_level(segment_descriptor_t *, uint8_t);
+bool segment_set_segment_present(segment_descriptor_t *, bool);
+bool segment_set_segment_is_64_bit(segment_descriptor_t *, bool);
+bool segment_set_default_operation_size(segment_descriptor_t *, uint8_t);
+bool segment_set_granularity(segment_descriptor_t *, uint8_t);
 
 #endif
